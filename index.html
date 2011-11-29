@@ -4,6 +4,7 @@
   <meta charset='utf-8'>
 
   <title>dipth/jquery_zoomlist @ GitHub</title>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
 
   <style type="text/css">
     body {
@@ -27,7 +28,143 @@
     pre { background: #000; color: #fff; padding: 15px;}
     hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
     .footer { text-align:center; padding-top:30px; font-style: italic; }
+
+    .zoomListContainer {
+      overflow: hidden;
+    }
+
+    .zoomList {
+      position: relative;
+      overflow: hidden;
+      padding: 0px;
+      list-style: none;
+    }
+
+    .zoomList li {
+      position: relative;
+      float: left;
+      padding: 0px;
+      margin: 0px;
+    }
+
+    .zoomList li .hoverArea {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      z-index: 99;
+      cursor: pointer;
+    }
+
+    .zoomList li a img {
+      position: relative;
+    }
+
+    .zoomList li .caption {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      display: none;
+      z-index: 3;
+    }
+
+    #exampleList { width: 710px }
+    #exampleList li { width: 132px; height: 132px; margin: 0px 10px 10px 0px; }
+    #exampleList li img { width: 132px; height: 132px; }
+    #exampleList li .caption p {
+    margin:0;
+    padding:5px;
+    background-color: #ffffff;
+    filter:alpha(opacity=80);
+    -moz-opacity:0.8;
+    -khtml-opacity: 0.8;
+    opacity: 0.8;
+  }
   </style>
+  <script type="text/javascript">
+    (function( $ ) {
+      $.fn.zoomList = function() {
+
+        var firstItem = this.find('li');
+        var list = this;
+
+        // First we need to figure out the width, height and margin of the items in the list
+        var itemWidth = firstItem.width();
+        var itemHeight = firstItem.height();
+        var itemHorizontalMargin = parseInt(firstItem.css('margin-right'), 10);
+        var itemVerticalMargin = parseInt(firstItem.css('margin-bottom'), 10);
+
+        // Then we calculate the expanded size of the items.
+        var expandedWidth = itemWidth * 2 + itemHorizontalMargin;
+        var expandedHeight = itemHeight * 2 + itemVerticalMargin;
+
+        // Then we add hover-areas for all items in the list.
+        this.find('li').each(function(index, element) {
+          var hoverArea = $('<div class="hoverArea"/>');
+          hoverArea.width(itemWidth);
+          hoverArea.height(itemHeight);
+          $(element).append(hoverArea);
+        });
+
+        // When the user clicks the hoverArea, we should follow the underlying link.
+        this.find('li .hoverArea').click(function() {
+          var listItem = $(this).parent();
+          window.location = listItem.find('a').attr('href');
+        });
+
+        // When the user hovers over the hoverArea, we should expand the image and
+        // show the caption.
+        this.find('li .hoverArea').hover(function() {
+          var listItem = $(this).parent();
+
+          // Place the image on top of the other images
+          listItem.find('img').css('zIndex', '2');
+
+          // If the item is one of the left-outer-most items, we need to zoom to the left
+          // and if it's in the last row, we need to zoom up.
+          var currentPosition = listItem.position()
+          var moveLeft = 0;
+          var moveTop = 0;
+
+          if (currentPosition.left >= list.width() - (itemWidth + itemHorizontalMargin))
+            moveLeft = -itemWidth - itemHorizontalMargin;
+          if (currentPosition.top >= list.height() - (itemHeight + itemVerticalMargin))
+            moveTop = -itemHeight - itemVerticalMargin;
+
+          // Zoom the image and the caption if there is one.
+          listItem.find('img').stop(false,true).animate({'width':expandedWidth, 'height':expandedHeight, 'top':moveTop, 'left':moveLeft}, {duration:200});
+          listItem.find('.caption').stop(false,true).animate({'width':expandedWidth, 'height':expandedHeight, 'top':moveTop, 'left':moveLeft}, {duration:200});
+
+          // Display the caption if there is one.
+          listItem.find('div.caption').stop(false,true).fadeIn(200);
+        },
+        function() {
+          var hoverArea = $(this);
+          var listItem = $(this).parent();
+
+          // Reset the image
+          listItem.find('img').stop(false,true).animate(
+            {
+              'width': itemWidth,
+              'height': itemHeight,
+              'top': '0',
+              'left': '0'
+            }, {
+              duration:100,
+              complete: function() {
+                // Reset z-index
+                listItem.find('img').css('zIndex', '1');
+              }
+          });
+
+          // Hide the caption
+          listItem.find('div.caption').stop(false,true).fadeOut(200);
+        });
+
+        // Maintain chainability;
+        return this;
+      };
+    })( jQuery );
+  </script>
 </head>
 
 <body>
@@ -42,12 +179,167 @@
         <img border="0" width="90" src="https://github.com/images/modules/download/tar.png"></a>
     </div>
 
-    <h1><a href="https://github.com/dipth/jquery_zoomlist">jquery_zoomlist</a>
+    <h1><a href="https://github.com/dipth/jquery_zoomlist">jquery.zoomlist</a>
       <span class="small">by <a href="https://github.com/dipth">dipth</a></span></h1>
 
     <div class="description">
       A jQuery plugin for making a sleek list with zoom effect
     </div>
+      <h2>Example</h2>
+      <div class="zoomListContainer">
+        <ul class="zoomList" id="exampleList">
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186043593/in/photostream"><img src="example_images/01.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186042947/in/photostream/"><img src="example_images/02.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186041687/in/photostream/"><img src="example_images/03.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186041133/in/photostream/"><img src="example_images/04.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186564430/in/photostream/"><img src="example_images/05.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186036395/in/photostream/"><img src="example_images/06.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186559630/in/photostream/"><img src="example_images/07.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186556796/in/photostream/"><img src="example_images/08.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186031223/in/photostream/"><img src="example_images/09.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186030809/in/photostream/"><img src="example_images/10.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186028973/in/photostream/"><img src="example_images/11.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6186552014/in/photostream/"><img src="example_images/12.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073583502/in/photostream/"><img src="example_images/13.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073583170/in/photostream/"><img src="example_images/14.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073582908/in/photostream/"><img src="example_images/15.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073041521/in/photostream/"><img src="example_images/16.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073040963/in/photostream/"><img src="example_images/17.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073581382/in/photostream/"><img src="example_images/18.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073039955/in/photostream/"><img src="example_images/19.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073580504/in/photostream/"><img src="example_images/20.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073580006/in/photostream/"><img src="example_images/21.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073579546/in/photostream/"><img src="example_images/22.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073578904/in/photostream/"><img src="example_images/23.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073578502/in/photostream/"><img src="example_images/24.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+          <li>
+            <a href="http://www.flickr.com/photos/wuziwug/6073036901/in/photostream/"><img src="example_images/25.jpg"></a>
+            <div class="caption">
+              <p>This is a caption</p>
+            </div>
+          </li>
+        </ul>
+      </div>
 
       <h2>License</h2>
       <p>Creative Commons Attribution-ShareAlike 3.0 Unported License</p>
@@ -77,5 +369,10 @@
 
   </div>
 
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('#exampleList').zoomList();
+    });
+  </script>
 </body>
 </html>
