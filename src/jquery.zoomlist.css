@@ -1,0 +1,37 @@
+.zoomListContainer {
+  overflow: hidden;
+}
+
+.zoomList {
+  position: relative;
+  overflow: hidden;
+  padding: 0px;
+  list-style: none;
+}
+
+.zoomList li {
+  position: relative;
+  float: left;
+  padding: 0px;
+  margin: 0px;
+}
+
+.zoomList li .hoverArea {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 99;
+  cursor: pointer;
+}
+
+.zoomList li a img {
+  position: relative;
+}
+
+.zoomList li .caption {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  display: none;
+  z-index: 3;
+}
